@@ -105,8 +105,7 @@ bash InstallNET.sh \
     -swap "512" \
     --cloudkernel "0" \
     --bbr \
-    --motd \
-    --setdns "1.1.1.1,8.8.8.8"
+    --motd
 
 # Force reboot
 reboot
