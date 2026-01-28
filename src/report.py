@@ -14,8 +14,7 @@ try:
 except ImportError:
     sys.exit(1)
 
-#CONFIG_FILE = '/opt/scripts/config.json'
-CONFIG_FILE = 'config.json'
+CONFIG_FILE = '/opt/scripts/config.json'
 
 def load_config():
     if not os.path.exists(CONFIG_FILE):
