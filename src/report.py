@@ -14,7 +14,8 @@ try:
 except ImportError:
     sys.exit(1)
 
-CONFIG_FILE = '/opt/scripts/config.json'
+#CONFIG_FILE = '/opt/scripts/config.json'
+CONFIG_FILE = 'config.json'
 
 def load_config():
     if not os.path.exists(CONFIG_FILE):
@@ -78,12 +79,14 @@ def main():
                 traffic_gb = sum(d.get('Traffic', 0) for d in traffic_data.get('TrafficDetails', [])) / (1024**3)
 
             # 2. BSS 账单
-            bill_params = {'BillingCycle': datetime.datetime.now().strftime("%Y-%m")}
-            bill_data = do_common_request(client, 'business.ap-southeast-1.aliyuncs.com', '2017-12-14', 'QueryBillOverview', bill_params)
+            bill_params = {'BillingCycle': datetime.datetime.now().strftime("%Y-%m"), 'InstanceID': target_id}
+            bill_data = do_common_request(client, 'business.aliyuncs.com', '2017-12-14', 'DescribeInstanceBill', bill_params)
             bill_amount = -1
             if bill_data:
-                items = bill_data.get('Data', {}).get('Items', {}).get('Item', [])
-                bill_amount = sum(item.get('PretaxAmount', 0) for item in items)
+                items = bill_data.get('Data', {}).get('Items', [])
+                if items:
+                    bill_amount = float(items[0].get('PretaxAmount', 0))
+                    bill_currency = items[0].get('Currency', 'USD')
 
             # 3. ECS 状态
             ecs_params = {'PageSize': 50, 'RegionId': target_region}
@@ -119,6 +122,11 @@ def main():
             percent = (traffic_gb / quota) * 100
             
             bill_str = f"${bill_amount:.2f}" if bill_amount != -1 else "Fail"
+
+            if bill_currency == "CNY": # 如果阿里云用户账单是人民币
+                bill_str = f"¥{bill_amount:.2f}" if bill_amount != -1 else "Fail"
+                bill_limit = bill_limit * 7.0  # USD to CNY
+
             status_icon = "✅"
             if traffic_gb > quota: status_icon = "⚠️ 流量超标"
             if bill_amount > bill_limit: status_icon = "💸 扣费预警"
