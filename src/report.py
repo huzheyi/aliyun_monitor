@@ -15,6 +15,7 @@ except ImportError:
     sys.exit(1)
 
 CONFIG_FILE = '/opt/scripts/config.json'
+#CONFIG_FILE = 'config.json'
 
 def load_config():
     if not os.path.exists(CONFIG_FILE):
@@ -29,6 +30,15 @@ def send_tg_report(tg_conf, message):
         url = f"https://api.telegram.org/bot{tg_conf['bot_token']}/sendMessage"
         data = {"chat_id": tg_conf['chat_id'], "text": message, "parse_mode": "Markdown"}
         requests.post(url, json=data, timeout=10)
+    except:
+        pass
+
+def send_bark_report(bark_conf, message):
+    if not bark_conf.get('bark_url'):
+        return
+    try:
+        url = f"{bark_conf['bark_url']}/Aliyun监控/{message}"
+        requests.get(url, timeout=10)
     except:
         pass
 
@@ -52,6 +62,7 @@ def main():
     config = load_config()
     users = config.get('users', [])
     tg_conf = config.get('telegram', {})
+    bark_conf = config.get('bark', {})
     
     report_lines = []
     today = datetime.datetime.now().strftime("%Y-%m-%d")
@@ -136,11 +147,11 @@ def main():
 
             user_report = (
                 f"👤 *{user_name}* ({spec})\n"
-                f"   🖥️ 状态: {run_icon} {status}\n"
-                f"   🌐 IP: `{ip}`\n"
-                f"   📉 流量: {traffic_gb:.2f} GB ({percent:.1f}%)\n"
-                f"   💰 账单: *{bill_str}*\n"
-                f"   📝 评价: {status_icon}\n"
+                f"🖥️ 状态: {run_icon} {status}\n"
+                f"🌐 IP: `{ip}`\n"
+                f"📉 流量: {traffic_gb:.2f} GB ({percent:.1f}%)\n"
+                f"💰 账单: *{bill_str}*\n"
+                f"📝 评价: {status_icon}\n"
             )
             report_lines.append(user_report)
 
@@ -148,7 +159,9 @@ def main():
             report_lines.append(f"❌ *{user.get('name', 'Unknown')}* Error: {str(e)}\n")
 
     final_msg = "\n".join(report_lines)
+
     send_tg_report(tg_conf, final_msg)
+    send_bark_report(bark_conf, final_msg)
 
 if __name__ == "__main__":
     main()
