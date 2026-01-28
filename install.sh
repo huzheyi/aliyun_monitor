@@ -64,6 +64,9 @@ echo -e "2. 联系 ${CYAN}@userinfobot${NC} -> 获取您的 Chat ID"
 read -p "请输入 Telegram Bot Token: " TG_TOKEN
 read -p "请输入 Telegram Chat ID: " TG_ID
 
+echo -e "\n${BLUE}### 配置 Bark ###${NC}"
+read -p "请输入 Bark 推送地址 (如无可留空): " BARK_URL
+
 echo -e "\n${BLUE}### 配置阿里云 RAM ###${NC}"
 echo -e "请前往阿里云 RAM 控制台创建用户："
 echo -e "🔗 地址: ${YELLOW}https://ram.console.alibabacloud.com/users${NC}"
@@ -167,6 +170,9 @@ cat > "${TARGET_DIR}/config.json" <<EOF
     "telegram": {
         "bot_token": "$TG_TOKEN",
         "chat_id": "$TG_ID"
+    },
+    "bark": {
+        "bark_url": "$BARK_URL"
     },
     "users": [
         $USERS_JSON
